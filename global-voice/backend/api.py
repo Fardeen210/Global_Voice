@@ -7,6 +7,9 @@ from .media_utils import (
     translate_transcript,
 )
 import os
+print("✅ FastAPI loaded successfully")
+
+print("🔄 Initializing FastAPI app...")
 
 app = FastAPI()
 
