@@ -2,15 +2,14 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# 🛠️ Install ffmpeg and system deps
+# System deps
 RUN apt-get update && apt-get install -y ffmpeg git curl
 
-# ⚡ Install uv and deps
+# Python deps
 COPY requirements.txt ./
-RUN pip install -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
-
-# 📦 Copy app code
+# App code
 COPY . .
 
 EXPOSE 8000
