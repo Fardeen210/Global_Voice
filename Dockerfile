@@ -6,9 +6,9 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y ffmpeg git curl
 
 # ⚡ Install uv and deps
-RUN pip install uv
-COPY pyproject.toml ./
-RUN uv pip install --system
+COPY requirements.txt ./
+RUN pip install -r requirements.txt
+
 
 # 📦 Copy app code
 COPY . .
