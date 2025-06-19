@@ -1,44 +1,59 @@
-# backend/media_utils.py
 import os
-import ffmpeg
+import tempfile
 from uuid import uuid4
 from pytubefix import YouTube
+import openai
+from dotenv import load_dotenv
 
-def download_youtube_audio(youtube_url: str, output_dir: str = "temp"):
-    """Downloads lowest-res YouTube video, extracts audio, and returns MP3 path and title."""
+# Load API key
+load_dotenv()
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
-    print("📥 Downloading from:", youtube_url)
+def download_youtube_audio(youtube_url: str):
+    """Download YouTube audio-only stream as an .mp4 and return its path + title."""
+    print("📥 Downloading audio:", youtube_url)
+    yt = YouTube(youtube_url, use_oauth=False, allow_oauth_cache=False)
+    print("🎞️ Title:", yt.title)
 
-    try:
-        yt = YouTube(
-            youtube_url,
-            use_oauth=False,
-            allow_oauth_cache=False
+    # pick the best audio-only stream container (usually mp4 or webm)
+    stream = yt.streams.filter(only_audio=True).order_by("abr").desc().first()
+    if not stream:
+        raise Exception("No audio‐only stream available.")
+
+    # use a temp directory so we don't worry about permissions
+    tmpdir = tempfile.mkdtemp()
+    out_path = os.path.join(tmpdir, f"{uuid4()}.{stream.subtype}")
+
+    stream.download(output_path=tmpdir, filename=os.path.basename(out_path))
+    print("✅ Downloaded to:", out_path)
+    return out_path, yt.title
+
+def transcribe_with_whisper(audio_path: str) -> str:
+    """Use the new openai.audio.transcriptions.create interface (openai>=1.0.0)."""
+    with open(audio_path, "rb") as audio_file:
+        transcription = openai.audio.transcriptions.create(
+            model="whisper-1",
+            file=audio_file,
+            response_format="verbose_json"
         )
-        print("🎞️ Video title:", yt.title)
+    return {
+        "text": transcription.text,
+        "segments": transcription.segments  # list of segment objects
+    }
 
-        stream = yt.streams.get_lowest_resolution()
-        if not stream:
-            raise ValueError("No suitable stream found.")
+def translate_transcript(transcript: str, target_language: str) -> str:
+    """Use the new openai.chat.completions.create interface (openai>=1.0.0)."""
+    system_prompt = (
+        f"You are a professional translator. Translate the following transcript into {target_language}. "
+        "Preserve meaning and context; return only the translated text."
+    )
+    response = openai.chat.completions.create(
+        model="gpt-4",
+        messages=[
+            {"role": "system", "content": system_prompt},
+            {"role": "user",   "content": transcript}
+        ]
+    )
+    # access the content via the .message attribute
+    return response.choices[0].message.content
 
-        if not os.path.exists(output_dir):
-            os.makedirs(output_dir)
-
-        video_path = os.path.join(output_dir, f"{uuid4()}.mp4")
-        audio_path = os.path.join(output_dir, f"{uuid4()}.mp3")
-
-        stream.download(output_path=output_dir, filename=os.path.basename(video_path))
-        print("✅ Video downloaded:", video_path)
-
-        # Extract audio
-        ffmpeg.input(video_path).output(audio_path).run(overwrite_output=True)
-        print("🎧 Audio extracted:", audio_path)
-
-        # Clean up original video
-        os.remove(video_path)
-
-        return audio_path, yt.title
-
-    except Exception as e:
-        print(f"🔥 ERROR: {e}")
-        raise
