@@ -1,0 +1,23 @@
+version = 1
+revision = 2
+requires-python = ">=3.11"
+
+[[package]]
+name = "ai-projects"
+version = "0.1.0"
+source = { virtual = "." }
+dependencies = [
+    { name = "pytubefix" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "pytubefix", specifier = ">=9.2.0" }]
+
+[[package]]
+name = "pytubefix"
+version = "9.2.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/5f/61/e5ddfe61efd62114a17ce6e4de179dc6ed7f42bd075decbec592ef16fa66/pytubefix-9.2.0.tar.gz", hash = "sha256:40d1979f5873d17953f7d91d82ca0b25dd0182b3cc9d36fa43d8be462636aac1", size = 751615, upload-time = "2025-06-18T02:24:35.496Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/80/05/2c806e9b4a997f42756e1aef1d33ea80f8d8844124f79f80ba7bc3b8aae2/pytubefix-9.2.0-py3-none-any.whl", hash = "sha256:06c428a6f28e6e8719bd97036e363151197d1708cd65d508ad1b95f035371a05", size = 758496, upload-time = "2025-06-18T02:24:32.915Z" },
+]
