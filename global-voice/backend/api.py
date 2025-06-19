@@ -1,5 +1,6 @@
 # backend/api.py
 from fastapi import FastAPI, UploadFile, File, Query, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from .media_utils import (
     download_youtube_audio, 
     transcribe_with_whisper, 
@@ -8,6 +9,13 @@ from .media_utils import (
 import os
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.get("/process_youtube")
 def process_youtube_link(url: str = Query(...), lang: str = Query(default="en")):

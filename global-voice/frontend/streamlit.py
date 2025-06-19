@@ -17,7 +17,9 @@ if st.button("🔄 Process"):
                     f"{API_BASE_URL}/process_youtube",
                     params={"url": youtube_link, "lang": target_language}
                 )
-
+                st.write("Status code:", response.status_code)
+                st.write("Raw response:", response.text)
+                
                 if response.status_code == 200:
                     data = response.json()
                     st.success(f"✅ Translated video: {data['title']}")
